@@ -1,7 +1,7 @@
-function [xHatVec] = f_poseEstimator_LM_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params)
-%F_POSEESTIMATOR_LM_ADAPTIVE Non-linear Least-Squares Levenberg–Marquardt Solver
-%                            for Pose with Adaptive Marquardt Parameter
-%                            Selection with Multiple Random Reinitialisation
+function [xHatVec] = f_LM_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params)
+%F_LM_ADAPTIVE Non-linear Least-Squares Levenberg–Marquardt Solver
+%              for Pose with Adaptive Marquardt Parameter Selection
+%              with Multiple Random Reinitialisation
 %
 % Measurements: Relative bearing (azimuth, elevation) to feature points with 
 %               known correspondences 
@@ -16,7 +16,7 @@ JVec = zeros(params.num_init,1);
 for init_idx = 1:params.num_init,
     
     xHatVec = xHatVec0;
-    xHatVec(4:6) = randn(3,1)*params.reinit_att_noise_std;
+    xHatVec(4:6) = normrnd(0, params.reinit_att_noise_std, [3 1]);
     
     lambda = params.lambda;
 

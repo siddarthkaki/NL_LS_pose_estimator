@@ -4,6 +4,9 @@ function [] = f_posePlotter(fig_handle, rMat_c, type)
 
 figure(fig_handle);
 
+title('truth=b, estimate=r')
+xlabel('x (m)'); ylabel('y (m)'); zlabel('z (m)');
+
 [numPts,~] = size(rMat_c);
 
 if strcmp(type,'truth'),
@@ -29,6 +32,7 @@ elseif strcmp(type,'estimate'),
     end
     
 elseif strcmp(type,'est_conj'),
+    title('truth=b, estimate=r, conj\_est=g')
     for idx = 1:numPts,
         plot3(subs(rMat_c(idx,1)), subs(rMat_c(idx,2)), subs(rMat_c(idx,3)),'*g')
         hold on
@@ -39,9 +43,6 @@ elseif strcmp(type,'est_conj'),
         hold on
     end 
 end
-
-xlabel('x (m)'); ylabel('y (m)'); zlabel('z (m)');
 grid on
 axis equal
-title('truth=b, estimate=r, conj\_est=g')
 end

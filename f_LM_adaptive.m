@@ -1,7 +1,6 @@
-function [xHatVec] = f_poseEstimator_LM_adaptive(xHatVec0,yVec,rCamVec,rFeaMat,params)
-%F_POSEESTIMATOR_LM_ADAPTIVE Non-linear Least-Squares Levenberg–Marquardt Solver
-%                            for Pose with Adaptive Marquardt Parameter
-%                            Selection
+function [xHatVec] = f_LM_adaptive(xHatVec0,yVec,rCamVec,rFeaMat,params)
+%F_LM_ADAPTIVE Non-linear Least-Squares Levenberg–Marquardt Solver
+%              for Pose with Adaptive Marquardt Parameter Selection
 %
 % Measurements: Relative bearing (azimuth, elevation) to feature points with 
 %               known correspondences 

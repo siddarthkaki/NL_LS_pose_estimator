@@ -1,5 +1,5 @@
-function [xHatVec] = f_poseEstimator_LM(xHatVec0,yVec,rCamVec,rFeaMat,params)
-%F_POSEESTIMATOR_LM Non-linear Least-Squares Levenberg–Marquardt Solver for Pose
+function [xHatVec] = f_LM(xHatVec0,yVec,rCamVec,rFeaMat,params)
+%F_LM Non-linear Least-Squares Levenberg–Marquardt Solver for Pose
 %
 % Measurements: Relative bearing (azimuth, elevation) to feature points with 
 %               known correspondences 

@@ -12,15 +12,20 @@ options.time = 1;
 %#ok<*NOCOL>
    
 %% params
+% measurement params
+params.meas.std = deg2rad(1);
+
 % camera params
-params.cam.f = 35*10^(-3); % camera focal length
+params.cam.f = 5.5*10^(-3); % camera focal length
 
 % LM params
 params.lm.lambda = 5;
 params.lm.max_count = 10000;
+params.lm.max_adaptive_count = 5;
 params.lm.eps = 0.01;
 params.lm.num_init = 10;
 params.lm.reinit_att_noise_std = 2;
+params.lm.meas.std = params.meas.std;
 
 %% init
 rng(1)
@@ -31,6 +36,11 @@ rFeaMat = [ 0, 0, 0.5;
             0, 0,-1.5;
             0, 1, 1;
             0,-1, 1; ];
+        
+% rFeaMat = [ 0, 0, 0;
+%             0, 0,-1;
+%             0, 1.5, 1;
+%             0,-1.5, 1; ];
 
 %rFeaMat = [rFeaMat; [1, 0, 0.5]]; % additional feature points
         
@@ -81,7 +91,7 @@ for idx = 1:size(xMat,1),
         yVec = f_generateMeasurements(rMat, params.cam.f);
 
         % add noise to measurements
-        yVec = yVec + deg2rad(0.5)*randn(size(yVec));
+        yVec = yVec + normrnd(0,params.meas.std,size(yVec));
 
     else
         error('TODO: not implemented');
@@ -90,7 +100,7 @@ for idx = 1:size(xMat,1),
     %% LM
     % initialise initial state estimate
     %        [x; y; z; phi; theta; psi];
-    xNoise = [randn(2,1)*2; randn(1,1)*3; randn(3,1)*0.25];
+    xNoise = [normrnd(0,2,[2 1]); normrnd(0,3,[1 1]); normrnd(0,0.25,[3 1])];
     xHatVec0 = xVec + xNoise;
     %xHatVec0(1:3) = [0;0;30];
     %xHatVec0(4:6) = deg2rad(0)*ones(3,1);
@@ -101,7 +111,8 @@ for idx = 1:size(xMat,1),
     % find pose estimate
     %xHatVec = f_LM(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
     %xHatVec = f_LM_adaptive(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
-    xHatVec = f_LM_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
+    %xHatVec = f_LM_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
+    xHatVec = f_LM_sqrt_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
     
     % find conjugate pose estimate
     xHatVec2 = f_findConjPose(xHatVec);

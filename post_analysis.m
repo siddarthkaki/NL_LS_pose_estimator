@@ -50,7 +50,7 @@ for idx = 1:numPoses,
     f_att_score = @(quat_w) 2*acosd(norm(quat_w));
     
     att_score(idx) = f_att_score(z_quat(1));
-    %att_score(idx) = min(f_att_score(z_quat(1)), f_att_score(z_quat2(1)));
+    att_score(idx) = min(f_att_score(z_quat(1)), f_att_score(z_quat2(1)));
 end
 
 % STDErr_rad = std(ErrMat_rad);
@@ -64,5 +64,5 @@ pos_score_std = std(pos_score);
 att_score_mean = mean(att_score);
 att_score_std = std(att_score);
 
-fprintf('\npos_score ~ N(%.5f,%.3f) [m]\n',pos_score_mean,pos_score_std)
-fprintf('\natt_score ~ N(%.5f,%.3f) [deg]\n',att_score_mean,att_score_std)
+fprintf('\npos_score - mean: %.5f\t|\tstd: %.3f [m]\n',pos_score_mean,pos_score_std)
+fprintf('\natt_score - mean: %.5f\t|\tstd: %.3f [deg]\n',att_score_mean,att_score_std)

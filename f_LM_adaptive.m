@@ -22,22 +22,24 @@ while true,
     
     [~, Hy] = size(H);
     
+    M = H.'*H;
+
     % check for positive definiteness of H.'*H
-    if all(eig(H.'*H)) > 0
-        % positive definite
-    else
-        lambda = norm(H)*0.1;
+    try chol(M);
+        %disp('Matrix is symmetric positive definite.')
+    catch
+        lambda = 1;%norm(H)*0.1;
+        %disp('Matrix is not symmetric positive definite')
     end
     
     yHatVec = f_yHatVec(xHatVec, rCamVec, rFeaMat);
     Jold = f_J(yVec,yHatVec);
     
-    dxHatVec = (H.'*H + lambda*eye(Hy))\H.'*(yVec - yHatVec);
+    %dxHatVec = (M + lambda*eye(Hy))\H.'*(yVec - yHatVec);
     
     while true,
         
         %dxHatVec = (H.'*H + lambda*eye(Hy))\H.'*(yVec - yHatVec);
-        M = H.'*H;
         dxHatVec = (M + lambda*diag(diag(M)))\H.'*(yVec - yHatVec);
 
         Jnew = f_J(yVec,f_yHatVec(xHatVec + dxHatVec, rCamVec, rFeaMat));

@@ -10,8 +10,6 @@ options.generate_measurements = 1;
 options.write_to_file = 1;
 options.time = 1;
 %options.lsqnonlin = optimoptions('lsqnonlin','Display','iter');
-options.lsqnonlin.Algorithm = 'levenberg-marquardt';
-options.lsqnonlin.FunctionTolerance = 1e-15;
 options.jacobian_type = 'approx';
 %options.jacobian_type = 'true';
 %#ok<*NOCOL>
@@ -32,8 +30,12 @@ params.lm.num_init = 10;
 params.lm.reinit_att_noise_std = 2;
 params.lm.meas.std = params.meas.std;
 
+% lsqnonlin params
+params.lsqnonlin.Algorithm = 'levenberg-marquardt';
+params.lsqnonlin.FunctionTolerance = 1e-15;
+
 %% init
-rng(1)
+rng default
 
 %% construct feature points
 % specify rigid position vector of feature points wrt target in target frame
@@ -127,13 +129,14 @@ for idx = 1:size(xMat,1),
         f_measResidWrapper = @(xHatVecParam) f_measResid(xHatVecParam, yVec, rCamVec, rFeaMat);
         
         % find pose estimate
-        xHatVec = lsqnonlin(f_measResidWrapper,xHatVec0,[],[],options.lsqnonlin);
+        %xHatVec = lsqnonlin(f_measResidWrapper,xHatVec0,[],[],params.lsqnonlin);
+        xHatVec = f_lsqnonlin_reinit(f_measResidWrapper,xHatVec0,params);
         
         % find conjugate pose estimate
         xHatVec2 = f_findConjPose(xHatVec);
         
         % refine conjugate pose estimate
-        xHatVec2 = lsqnonlin(f_measResidWrapper,xHatVec2,[],[],options.lsqnonlin);
+        xHatVec2 = lsqnonlin(f_measResidWrapper,xHatVec2,[],[],params.lsqnonlin);
     end
     
     rMatHat = f_stateToPosChaserFrame(xHatVec, rCamVec, rFeaMat);

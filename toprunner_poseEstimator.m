@@ -9,6 +9,11 @@ options.plot = 0;
 options.generate_measurements = 1;
 options.write_to_file = 1;
 options.time = 1;
+%options.lsqnonlin = optimoptions('lsqnonlin','Display','iter');
+options.lsqnonlin.Algorithm = 'levenberg-marquardt';
+options.lsqnonlin.FunctionTolerance = 1e-15;
+options.jacobian_type = 'approx';
+%options.jacobian_type = 'true';
 %#ok<*NOCOL>
    
 %% params
@@ -100,24 +105,36 @@ for idx = 1:size(xMat,1),
     %% LM
     % initialise initial state estimate
     %        [x; y; z; phi; theta; psi];
-    xNoise = [normrnd(0,2,[2 1]); normrnd(0,3,[1 1]); normrnd(0,0.25,[3 1])];
+    xNoise = [normrnd(0,2,[2 1]); normrnd(0,3,[1 1]); normrnd(0,pi,[3 1])];
     xHatVec0 = xVec + xNoise;
-    %xHatVec0(1:3) = [0;0;30];
-    %xHatVec0(4:6) = deg2rad(0)*ones(3,1);
-
-    error_prior = xVec - xHatVec0;
-    %error_prior_deg = [error_prior(1:3); rad2deg(error_prior(4:6))]
-
-    % find pose estimate
-    %xHatVec = f_LM(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
-    %xHatVec = f_LM_adaptive(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
-    %xHatVec = f_LM_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
-    xHatVec = f_LM_sqrt_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
     
-    % find conjugate pose estimate
-    xHatVec2 = f_findConjPose(xHatVec);
-    % refine conjugate pose estimate
-    xHatVec2 = f_LM_adaptive(xHatVec2,yVec,rCamVec,rFeaMat,params.lm);
+    % true Jacobian (slower but more accurate)
+    if strcmp(options.jacobian_type, 'true'),
+        
+        % find pose estimate
+        %xHatVec = f_LM_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
+        xHatVec = f_LM_sqrt_adaptive_reinit(xHatVec0,yVec,rCamVec,rFeaMat,params.lm);
+        
+        % find conjugate pose estimate
+        xHatVec2 = f_findConjPose(xHatVec);
+        
+        % refine conjugate pose estimate
+        xHatVec2 = f_LM_adaptive(xHatVec2,yVec,rCamVec,rFeaMat,params.lm);
+        
+    % approx Jacobian (faster but less accurate)
+    elseif strcmp(options.jacobian_type, 'approx'),
+        
+        f_measResidWrapper = @(xHatVecParam) f_measResid(xHatVecParam, yVec, rCamVec, rFeaMat);
+        
+        % find pose estimate
+        xHatVec = lsqnonlin(f_measResidWrapper,xHatVec0,[],[],options.lsqnonlin);
+        
+        % find conjugate pose estimate
+        xHatVec2 = f_findConjPose(xHatVec);
+        
+        % refine conjugate pose estimate
+        xHatVec2 = lsqnonlin(f_measResidWrapper,xHatVec2,[],[],options.lsqnonlin);
+    end
     
     rMatHat = f_stateToPosChaserFrame(xHatVec, rCamVec, rFeaMat);
     rMatHat2 = f_stateToPosChaserFrame(xHatVec2, rCamVec, rFeaMat);
